@@ -1,6 +1,6 @@
 Touch Home
 =====
-Use TouchID sensor as Home button, one tap to simulate Home, two taps to open app switcher
+Another iOS little tweak, allow using TouchID sensor as Home button, one tap to simulate Home, two taps to open app switcher. Support iOS 10
 
 1) Install
 
