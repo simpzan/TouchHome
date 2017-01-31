@@ -1,0 +1,10 @@
+Package: com.martinpham.touchhome
+Name: TouchHome
+Depends: mobilesubstrate
+Architecture: iphoneos-arm
+Description: Use TouchID sensor as Home button, one tap to simulate Home, two taps to open app switcher
+Maintainer: TouchHome
+Author: TouchHome
+Section: Tweaks
+Version: 0.0.1-25+debug
+Installed-Size: 124
