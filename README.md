@@ -4,6 +4,10 @@ Another iOS little tweak, allow using TouchID sensor as Home button, one tap to 
 
 1) Install
 
+Add Cydia repo http://martinpham.gitlab.io/cydia then search TouchHome
+
+or
+
 Use [DEB file](/packages/com.martinpham.touchhome_0.0.1-25+debug_iphoneos-arm.deb) to install.
 
 2) Build
