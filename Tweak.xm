@@ -3,14 +3,19 @@
  * MartinPham.com
 **/
 #include <notify.h>
+#import <Foundation/Foundation.h>
+
+#import <AudioToolbox/AudioToolbox.h> 
+extern "C" void AudioServicesPlaySystemSoundWithVibration(SystemSoundID inSystemSoundID, id unknown, NSDictionary *options);
+
 
 
 #define TouchIDFingerUp    0
 #define TouchIDFingerDown  1
-#define TouchIDFingerHeld  2
-#define TouchIDMatched     3
-#define TouchIDUnlocked    4
-#define TouchIDNotMatched  10
+// #define TouchIDFingerHeld  2
+// #define TouchIDMatched     3
+// #define TouchIDUnlocked    4
+// #define TouchIDNotMatched  10
 
 // Interfaces needed, I'm too lazy to include full header files
 @interface UIApplication (Z)
@@ -22,6 +27,12 @@
 @end
 
 
+
+static NSDate* lastTouchDate = nil;
+static int numberOfTouch = 0;
+static NSTimer* touchTimer = nil;
+
+
 %hook SBReachabilityManager
 // Enable Reachability on all devices
 + (_Bool)reachabilitySupported {
@@ -30,6 +41,7 @@
 
 // Show appswitcher instead
 - (void)_handleReachabilityActivated {
+	numberOfTouch = 0;
 	[[%c(SBMainSwitcherViewController) sharedInstance] toggleSwitcherNoninteractively];
 }
 %end
@@ -39,31 +51,45 @@
 - (void)handleBiometricEvent:(unsigned long long)arg1 {
 	%orig;
 
+	// NSLog(@">> handleBiometricEvent >> %lld", arg1);
+
 	if (arg1 == TouchIDFingerDown) {
-		// Send notification to SpringBoard listener
-		notify_post("com.martinpham.touchhome.touchIdDown");
+		NSDate *currentTouchDate = [[NSDate date] retain];
+		NSTimeInterval diffFromLastTouchDate = 999;
+		
+		if (lastTouchDate != nil) {
+			diffFromLastTouchDate = [currentTouchDate timeIntervalSinceDate:lastTouchDate];
+		}
+		
+		lastTouchDate = currentTouchDate;
+		
+		if (diffFromLastTouchDate <= 0.8f) {
+			// continous tap
+			// numberOfTouch++;
+		} else {
+			// reset tap
+			numberOfTouch = 1;
+		}
+		
+		if (touchTimer != nil) {
+			[touchTimer invalidate];
+		}
+		touchTimer = [[NSTimer scheduledTimerWithTimeInterval:0.18f repeats:NO block:^(NSTimer * _Nonnull timer) {
+			if (numberOfTouch == 1) {
+				// Play short viberation
+				// NSMutableDictionary* VibrationDictionary = [NSMutableDictionary dictionary];
+				// NSMutableArray* VibrationArray = [NSMutableArray array ];
+				// [VibrationArray addObject:[NSNumber numberWithBool:YES]];
+				// [VibrationArray addObject:[NSNumber numberWithInt:50]];
+				// [VibrationDictionary setObject:VibrationArray forKey:@"VibePattern"];
+				// [VibrationDictionary setObject:[NSNumber numberWithInt:1] forKey:@"Intensity"];
+				// AudioServicesPlaySystemSoundWithVibration(4095,nil,VibrationDictionary);
+
+				// Press home
+				[[UIApplication sharedApplication] _simulateHomeButtonPress];
+			} 
+		}] retain];
 	}
-}
-%end
-
-// Implement listener, in this case we want to simulate Home button
-static void TouchHome_TouchIdDown(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
-{
-	@try {
-		[[UIApplication sharedApplication] _simulateHomeButtonPress];
-	}
-	@catch (NSException *exception) {
-		NSLog(@">>>> Exception:%@",exception);
-	}
-}
-
-%hook SpringBoard
-// Register listener
-- (void)applicationDidFinishLaunching: (id) application {
-    %orig;
-
-	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, TouchHome_TouchIdDown, CFSTR("com.martinpham.touchhome.touchIdDown"), NULL, CFNotificationSuspensionBehaviorCoalesce);
-
 }
 %end
 
