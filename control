@@ -4,6 +4,7 @@ Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: Use TouchID sensor as Home button, one tap to simulate Home, two taps to open app switcher
+Depiction: http://martinpham.gitlab.io/cydia/depictions/com.martinpham.touchhome.html
 Maintainer: TouchHome
 Author: TouchHome
 Section: Tweaks
